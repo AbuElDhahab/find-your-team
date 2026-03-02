@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>تنسيق تيمات المعهد</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; padding: 50px; background: #f4f4f4; }
+        .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px #ccc; max-width: 400px; margin: auto; }
+        input { width: 90%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px; }
+        button { background: #25D366; color: white; border: none; padding: 12px 20px; cursor: pointer; width: 100%; border-radius: 5px; font-weight: bold; }
+        button:hover { background: #1ebe57; }
+        #status { margin-top: 15px; font-size: 14px; color: #555; }
+        a { display: inline-block; margin-top: 10px; padding: 10px; background: #25D366; color: white; text-decoration: none; border-radius: 5px; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>سجل بيانات تيمك 🤝</h2>
+    <input type="text" id="name" placeholder="اسمك">
+    <input type="number" id="team" placeholder="رقم التيم">
+    
+    <div id="linkSection" style="display:none;">
+        <p style="font-size: 13px; color: #666;">محدش سجل في التيم ده قبلك، اعمل جروب واتساب وحط اللينك هنا:</p>
+        <input type="text" id="waLink" placeholder="لينك جروب الواتساب">
+    </div>
+    
+    <button onclick="checkAndSubmit()">تسجيل / بحث</button>
+    <div id="status"></div>
+</div>
+
+<script>
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyv0gTdgosYYMXMLoGyGYV2mr9Qx2D3LY_3Ej4rzS1Lf_YIWOcpzYnndE9wwZ4-n4ha/exec";
+
+    async function checkAndSubmit() {
+        const teamNum = document.getElementById('team').value;
+        const name = document.getElementById('name').value;
+        const status = document.getElementById('status');
+        const linkSection = document.getElementById('linkSection');
+
+        if(!teamNum || !name) { 
+            alert("كمل البيانات"); 
+            return; 
+        }
+
+        status.innerText = "جاري البحث عن تيمك...";
+        
+        try {
+            
+            const response = await fetch(SCRIPT_URL);
+            const allData = await response.json();
+            
+            
+            const teamMatch = allData.find(row => row[1] == teamNum);
+
+            if (teamMatch && teamMatch[2]) {
+                status.innerHTML = `تيمك موجود! <br><a href="${teamMatch[2]}" target="_blank">اضغط هنا للانضمام للجروب</a>`;
+                linkSection.style.display = "none";
+            } else {
+                const linkInput = document.getElementById('waLink').value;
+                if (!linkInput) {
+                    linkSection.style.display = "block";
+                    status.innerText = "تيمك لسا ملوش جروب، اعمل واحد وضيف اللينك هنا:";
+                } else {
+                    status.innerText = "جاري الحفظ...";
+                    await fetch(SCRIPT_URL, {
+                        method: 'POST',
+                        mode: 'no-cors', 
+                        body: JSON.stringify({name, team: teamNum, link: linkInput})
+                    });
+                    status.innerText = "تم التسجيل بنجاح! اللينك بقى متاح لزمايلك.";
+                    linkSection.style.display = "none";
+                }
+            }
+        } catch (error) {
+            status.innerText = "حصل خطأ في الاتصال، تأكد من الـ Deployment URL";
+            console.error(error);
+        }
+    }
+</script>
+</body>
+</html>
