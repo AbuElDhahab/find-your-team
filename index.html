@@ -2,30 +2,88 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>تنسيق تيمات المعهد</title>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; padding: 50px; background: #f4f4f4; }
-        .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px #ccc; max-width: 400px; margin: auto; }
-        input { width: 90%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px; }
-        button { background: #25D366; color: white; border: none; padding: 12px 20px; cursor: pointer; width: 100%; border-radius: 5px; font-weight: bold; }
-        button:hover { background: #1ebe57; }
-        #status { margin-top: 15px; font-size: 14px; color: #555; }
-        a { display: inline-block; margin-top: 10px; padding: 10px; background: #25D366; color: white; text-decoration: none; border-radius: 5px; }
+        :root {
+            --primary-color: #25D366;
+            --secondary-color: #128C7E;
+            --bg-color: #f0f2f5;
+        }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            text-align: center; 
+            padding: 20px; 
+            background: var(--bg-color); 
+            margin: 0;
+        }
+        .card { 
+            background: white; 
+            padding: 30px 20px; 
+            border-radius: 15px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1); 
+            max-width: 400px; 
+            margin: 40px auto; 
+        }
+        h2 { color: #333; margin-bottom: 25px; }
+        input { 
+            width: 90%; 
+            padding: 12px; 
+            margin: 10px 0; 
+            border: 1px solid #ddd; 
+            border-radius: 8px; 
+            font-size: 16px;
+            outline: none;
+        }
+        input:focus { border-color: var(--primary-color); }
+        button { 
+            background: var(--primary-color); 
+            color: white; 
+            border: none; 
+            padding: 15px; 
+            cursor: pointer; 
+            width: 96%; 
+            border-radius: 8px; 
+            font-weight: bold; 
+            font-size: 17px;
+            transition: 0.3s;
+            margin-top: 10px;
+        }
+        button:hover { background: var(--secondary-color); transform: translateY(-2px); }
+        #status { 
+            margin-top: 20px; 
+            font-size: 15px; 
+            color: #555; 
+            line-height: 1.6;
+        }
+        .whatsapp-btn { 
+            display: inline-block; 
+            margin-top: 15px; 
+            padding: 12px 25px; 
+            background: var(--primary-color); 
+            color: white; 
+            text-decoration: none; 
+            border-radius: 25px; 
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        .footer { margin-top: 50px; font-size: 12px; color: #888; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <h2>سجل بيانات تيمك 🤝</h2>
-    <input type="text" id="name" placeholder="اسمك">
-    <input type="number" id="team" placeholder="رقم التيم">
+    <h2>تنسيق تيمات المعهد 🤝</h2>
+    <input type="text" id="name" placeholder="اسمك بالكامل">
+    <input type="number" id="team" placeholder="رقم التيم (مثلاً: 5)">
     
     <div id="linkSection" style="display:none;">
-        <p style="font-size: 13px; color: #666;">محدش سجل في التيم ده قبلك، اعمل جروب واتساب وحط اللينك هنا:</p>
-        <input type="text" id="waLink" placeholder="لينك جروب الواتساب">
+        <p style="font-size: 14px; color: #d9534f; font-weight: bold;">التيم ده لسه ملوش جروب!</p>
+        <p style="font-size: 13px; color: #666;">اعمل جروب واتساب وضيف اللينك هنا عشان زمايلك يلاقوك:</p>
+        <input type="url" id="waLink" placeholder="https://chat.whatsapp.com/...">
     </div>
     
-    <button onclick="checkAndSubmit()">تسجيل / بحث</button>
+    <button id="mainBtn" onclick="checkAndSubmit()">بحث عن التيم / تسجيل</button>
     <div id="status"></div>
 </div>
 
@@ -33,20 +91,21 @@
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyv0gTdgosYYMXMLoGyGYV2mr9Qx2D3LY_3Ej4rzS1Lf_YIWOcpzYnndE9wwZ4-n4ha/exec";
 
     async function checkAndSubmit() {
-        const teamNum = document.getElementById('team').value;
-        const name = document.getElementById('name').value;
+        
+        const teamNum = document.getElementById('team').value.trim();
+        const name = document.getElementById('name').value.trim();
         const status = document.getElementById('status');
         const linkSection = document.getElementById('linkSection');
+        const waLinkInput = document.getElementById('waLink');
 
         if(!teamNum || !name) { 
-            alert("كمل البيانات"); 
+            alert("يا ريت تكمل اسمك ورقم تيمك الأول"); 
             return; 
         }
 
-        status.innerText = "جاري البحث عن تيمك...";
+        status.innerHTML = "⏳ جاري البحث في قاعدة البيانات...";
         
         try {
-            
             const response = await fetch(SCRIPT_URL);
             const allData = await response.json();
             
@@ -54,26 +113,45 @@
             const teamMatch = allData.find(row => row[1] == teamNum);
 
             if (teamMatch && teamMatch[2]) {
-                status.innerHTML = `تيمك موجود! <br><a href="${teamMatch[2]}" target="_blank">اضغط هنا للانضمام للجروب</a>`;
+                status.innerHTML = `✅ تيمك موجود فعلاً!<br><a href="${teamMatch[2]}" target="_blank" class="whatsapp-btn">انضم لجروب الواتساب الآن</a>`;
                 linkSection.style.display = "none";
+                
+                document.getElementById('name').value = "";
+                document.getElementById('team').value = "";
             } else {
-                const linkInput = document.getElementById('waLink').value;
+                const linkInput = waLinkInput.value.trim();
+                
                 if (!linkInput) {
                     linkSection.style.display = "block";
-                    status.innerText = "تيمك لسا ملوش جروب، اعمل واحد وضيف اللينك هنا:";
+                    status.innerText = "التيم ده لسه محدش سجل فيه، كن أول واحد!";
+                    waLinkInput.focus();
                 } else {
-                    status.innerText = "جاري الحفظ...";
+                    
+                    const waPattern = /^https:\/\/chat\.whatsapp\.com\/[A-Za-z0-9]{20,}$/;
+                    
+                    if (!waPattern.test(linkInput)) {
+                        alert("اللينك اللي دخلته مش صح، لازم يبدأ بـ https://chat.whatsapp.com/");
+                        return;
+                    }
+
+                    status.innerText = "🚀 جاري حفظ بياناتك واللينك...";
+                    
                     await fetch(SCRIPT_URL, {
                         method: 'POST',
-                        mode: 'no-cors', 
+                        mode: 'no-cors',
                         body: JSON.stringify({name, team: teamNum, link: linkInput})
                     });
-                    status.innerText = "تم التسجيل بنجاح! اللينك بقى متاح لزمايلك.";
+
+                    status.innerHTML = "🎊 تم التسجيل بنجاح! اللينك بقى متاح لأي حد في تيمك يبحث عنه.";
                     linkSection.style.display = "none";
+                    
+                    document.getElementById('name').value = "";
+                    document.getElementById('team').value = "";
+                    waLinkInput.value = "";
                 }
             }
         } catch (error) {
-            status.innerText = "حصل خطأ في الاتصال، تأكد من الـ Deployment URL";
+            status.innerText = "❌ حصلت مشكلة في الاتصال، جرب تاني كمان شوية";
             console.error(error);
         }
     }
