@@ -131,7 +131,7 @@
                     waLinkInput.focus();
                 } else {
                     
-                    const waPattern = /^https:\/\/chat\.whatsapp\.com\/[A-Za-z0-9]{20,}$/;
+                    const waPattern = /^https:\/\/chat\.whatsapp\.com\/[A-Za-z0-9_-]{20,}(\?.*)?$/;;
                     
                     if (!waPattern.test(linkInput)) {
                         alert("اللينك اللي دخلته مش صح، لازم يبدأ بـ https://chat.whatsapp.com/");
@@ -162,4 +162,5 @@
 </script>
 </body>
 </html>
+
 
